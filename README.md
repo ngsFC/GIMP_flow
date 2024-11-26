@@ -7,7 +7,7 @@
 </div>
 
 
-**GIMP** (Genomic Imprinting Methylation Patterns) is an R package designed for the analysis of methylation arrays. It provides a pipeline for generating CpG sites, computing CpG coverage, and analyzing ICRs (Imprinting Control Regions) from methylation data. The package supports multiple platforms, including Illumina's 450k, EPIC v1, and EPIC v2 arrays.
+**GIMP** (Genomic Imprinting Methylation Patterns) is an R package designed for the analysis of ICRs (Imprinting Control Regions) from methylation array data. It provides a pipeline for extract imprinted CpGs (iCpGs), computing coverage, and analyzing ICRs in probe and sample specific manner. The package supports multiple platforms, including Illumina's 450k, EPIC v1, and EPIC v2 arrays.
 
 ## Installation
 
@@ -28,22 +28,27 @@ library(GIMP)
 
 The GIMP package depends on the following R packages:
 
-    tidyverse: A collection of R packages for data manipulation.
-    valr: Tools to work with genome intervals.
-    reshape2: A package for reshaping data between wide and long formats.
-
-Ensure that these dependencies are installed before running GIMP.
-
-```r
-# Install required packages
-install.packages(c("tidyverse", "valr", "reshape2"))
-```
+    tidyverse
+    valr
+    reshape2
+    ggplot2
+    pheatmap
+    viridisLite
+    ggplotify
+    readr
+    shiny
+    plotly
+    BiocManager
+    IlluminaHumanMethylation450kanno.ilmn12.hg19
+    IlluminaHumanMethylationEPICanno.ilm10b4.hg19
+    IlluminaHumanMethylationEPICv2anno.20a1.hg38
+    limma
 
 ## Usage
 
 Below is a sample workflow using GIMP to analyze a Betavalue matrix. This example demonstrates how to generate CpG sites, visualize CpG coverage, create ICRs, and analyze ICR regions.
 
-### Step 1: Load the Betavalue Matrix
+### Load the Betavalue Matrix
 
 Load the Betavalue matrix. The Betavalue matrix should contain methylation data where rows represent CpG sites and columns represent samples.
 
@@ -52,29 +57,29 @@ Load the Betavalue matrix. The Betavalue matrix should contain methylation data 
 df <- readRDS("example.rds")
 ```
 
-### Step 2: Generate CpG Sites (make_cpgs())
+### Generate iCpG Sites (make_cpgs())
 
-The make_cpgs() function processes the Betavalue matrix to generate CpG sites for further analysis. You need to specify the array version you are using (e.g., "v1" for EPIC v1).
+The make_cpgs() function processes the Betavalue matrix to extract the iCpG for further analysis. You need to specify the array version you are using (e.g., "v1" for EPIC v1).
 
 ```r
 # Generate CpG sites using the specified BedMeth version (e.g., "v1" for EPICv1)
 ICRcpg <- make_cpgs(Bmatrix = df, bedmeth = "v1")
 ```
 
-### Step 3: Visualize CpG Coverage (plot_CpG_coverage())
+### Visualize CpG Coverage (plot_cpg_coverage())
 
-Once the CpG sites are generated, use the plot_CpG_coverage() function to visualize the CpG coverage. This function provides both the coverage data and a plot for interpretation.
+Once the iCpG are extracted, use the plot_cpg_coverage() function to visualize the iCpG coverage. This function provides both the coverage data and a plot for interpretation.
 
 ```r
 # Visualize CpG coverage
-cpgs_analysis <- plot_CpG_coverage(ICRcpg, bedmeth = "v1")
+cpgs_analysis <- plot_cpg_coverage(ICRcpg, bedmeth = "v1")
 
 # The result includes both a plot and data, which can be accessed as:
 # cpgs_analysis$plot  # to view the plot
 # cpgs_analysis$data  # to view the coverage data
 ```
 
-### Step 4: Create Imprinting Control Regions (ICRs) (make_ICRs())
+### Look at ICRs (make_ICRs())
 
 The make_ICRs() function creates ICR regions from the Betavalue matrix.
 
@@ -83,7 +88,7 @@ The make_ICRs() function creates ICR regions from the Betavalue matrix.
 df.ICR <- make_ICRs(Bmatrix = df, bedmeth = "v1")
 ```
 
-### Step 5: Analyze ICRs (analyze_ICR())
+### Analyze ICRs (analyze_ICR())
 
 The analyze_ICR() function performs a differential analysis on the ICRs. You will need to provide a vector that indicates the group assignment (e.g., "Case" or "Control") for each sample.
 
