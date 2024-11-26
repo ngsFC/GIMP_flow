@@ -9,21 +9,6 @@
 
 **GIMP** (Genomic Imprinting Methylation Patterns) is an R package designed for the analysis of ICRs (Imprinting Control Regions) from methylation array data. It provides a pipeline for extract imprinted CpGs (iCpGs), computing coverage, and analyzing ICRs in probe and sample specific manner. The package supports multiple platforms, including Illumina's 450k, EPIC v1, and EPIC v2 arrays.
 
-## Installation
-
-You can install the latest version of GIMP directly from GitHub using the devtools package:
-
-```r
-# Install devtools if you don't have it
-install.packages("devtools")
-
-# Install GIMP from GitHub
-devtools::install_github("ngsFC/GIMP", force = TRUE)
-
-# Load the GIMP package
-library(GIMP)
-```
-
 ### Dependencies
 
 The GIMP package depends on the following R packages:
@@ -72,10 +57,11 @@ Once the iCpG are extracted, use the plot_cpg_coverage() function to visualize t
 
 ```r
 # Visualize CpG coverage
-cpgs_analysis <- plot_cpg_coverage(ICRcpg, bedmeth = "v1")
+cpgs_analysis <- plot_cpgs_coverage(ICRcpg, bedmeth = "v1")
 
 # The result includes both a plot and data, which can be accessed as:
-# cpgs_analysis$plot  # to view the plot
+# cpgs_analysis$plot_counts  # to view the probe coverage for each ICRs
+# cpgs_analysis$plot_counts  # to view the percentage of probes covered at ICRs
 # cpgs_analysis$data  # to view the coverage data
 ```
 
@@ -88,69 +74,56 @@ The make_ICRs() function creates ICR regions from the Betavalue matrix.
 df.ICR <- make_ICRs(Bmatrix = df, bedmeth = "v1")
 ```
 
-### Analyze ICRs (analyze_ICR())
+### Analyze ICRs
 
-The analyze_ICR() function performs a differential analysis on the ICRs. You will need to provide a vector that indicates the group assignment (e.g., "Case" or "Control") for each sample.
+## Heatmaps
 
-```r
-# Perform ICR analysis
-group_vector <- c(rep("Case", 13), rep("Control", 24))  # Define cases and controls
-icr_analysis <- GIMP::analyze_ICR(df.ICR, 
-                                  group_vector = group_vector, 
-                                  control_label = "Control", 
-                                  case_label = "Case")
-```
-
-### Step 6: Output and Interpretation
-
-After running the ICR analysis, analyze_ICR() returns three heatmaps to help visualize the differences between cases and controls in terms of ICR methylation patterns.
+The ICRs_heatmap() function generates heatmapa to visualize the methylation patterns of ICRs using beta values, delta-beta normalization, or a defect matrix based on standard deviations. It is designed to handle genomic methylation data with options for customization in row ordering, annotation, and visualization styles. This function is highly versatile, catering to exploratory analysis of epigenomic data across control and case groups.
 
 ```r
-# Access the results (heatmaps, data summaries, etc.)
-icr_analysis$heatmap1  # First heatmap
-icr_analysis$heatmap2  # Second heatmap
-icr_analysis$heatmap3  # Third heatmap
+sampleInfo <- c(rep("Control", 5), rep("Case", 5))
+
+ICRs_heatmap(
+  df_ICR = df_ICR,
+  sampleInfo = sampleInfo,
+  bedmeth = "v1",
+  order_by = "meth",
+  plot_type = "beta",
+  annotation_col = list(Sample = c(Control = "blue", Case = "red"))
+)
 ```
 
-## Functions Overview
+## iDMPs
 
-1. make_cpgs(Bmatrix, bedmeth)
+The iDMPs() function identifies imprinted differentially methylated probes (iDMPs) by leveraging linear modeling and empirical Bayes methods. This function is designed for comparative analysis of methylation levels between a Control group and another experimental group. It outputs the top-ranked DMPs based on a specified p-value cutoff and includes additional genomic metadata for each position.
 
-    Description: Generates CpG sites from the Betavalue matrix.
-    Arguments:
-        Bmatrix: Betavalue matrix (CpG sites by samples).
-        bedmeth: Version of the array platform ("v1" for EPICv1, "v2" for EPICv2, etc.).
+```r
+result <- iDMPs(data = example_data, sampleInfo = sampleInfo, pValueCutoff = 0.05)
 
-2. plot_CpG_coverage(cpgs_data, bedmeth)
+# View top DMPs
+head(result$topDMPs)
+```
 
-    Description: Visualizes CpG coverage and returns a plot and data.
-    Arguments:
-        cpgs_data: Data generated from make_cpgs().
-        bedmeth: Version of the array platform.
+## Plot specific ICR
 
-3. make_ICRs(Bmatrix, bedmeth)
+The plot_line_ICR() function creates a line plot to visualize methylation values across a specific ICR. The plot highlights iDMPs and supports both static and interactive visualizations. This tool is ideal for examining methylation patterns across iCpG within a specific genomic region, with group-based color differentiation.
 
-    Description: Creates ICRs from the Betavalue matrix.
-    Arguments:
-        Bmatrix: Betavalue matrix (CpG sites by samples).
-        bedmeth: Version of the array platform.
+```r
+plot <- plot_line_ICR(
+  significantDMPs = significantDMPs,
+  ICRcpg = ICRcpg,
+  ICR = "ICR1", # use an ICRs name
+  sampleInfo = sampleInfo,
+  interactive = TRUE
+)
 
-4. analyze_ICR(ICRmatrix, group_vector, control_label, case_label)
-
-    Description: Performs differential methylation analysis on ICRs and returns heatmaps.
-    Arguments:
-        ICRmatrix: ICR matrix.
-        group_vector: Vector indicating the group assignment for each sample (e.g., "Case" or "Control").
-        control_label: Label for the control group.
-        case_label: Label for the case group.
-
-## License
-
-GIMP is released under the MIT License.
+# Display the plot
+plot
+```
 
 ## Acknowledgments
 
-The GIMP package was developed by Francesco Cecere [ngsFC] as part of a project on genomic imprinting and methylation analysis. We gratefully acknowledge the contributions of the R and bioinformatics communities for the packages used in this project.
+The GIMP package was developed by Francesco Cecere [ngsFC]. We gratefully acknowledge the "National Centre for HPC, Big Data and Quantum Computing".
 
 ## Contact
 
